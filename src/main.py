@@ -8,6 +8,16 @@ import pymunk as pm
 from characters import Bird
 from level import Level
 
+def _register_post_solve(space, a, b, fn):
+    """
+    Pymunk v6 used Space.add_collision_handler().
+    Pymunk v7+ removed it in favor of Space.on_collision().
+    """
+    if hasattr(space, "on_collision"):
+        space.on_collision(a, b, post_solve=fn)
+    else:
+        space.add_collision_handler(a, b).post_solve = fn
+
 
 pygame.init()
 screen = pygame.display.set_mode((1200, 650))
@@ -312,11 +322,11 @@ def post_solve_pig_wood(arbiter, space, _):
 
 
 # bird and pigs
-space.add_collision_handler(0, 1).post_solve=post_solve_bird_pig
+_register_post_solve(space, 0, 1, post_solve_bird_pig)
 # bird and wood
-space.add_collision_handler(0, 2).post_solve=post_solve_bird_wood
+_register_post_solve(space, 0, 2, post_solve_bird_wood)
 # pig and wood
-space.add_collision_handler(1, 2).post_solve=post_solve_pig_wood
+_register_post_solve(space, 1, 2, post_solve_pig_wood)
 load_music()
 level = Level(pigs, columns, beams, space)
 level.number = 0
